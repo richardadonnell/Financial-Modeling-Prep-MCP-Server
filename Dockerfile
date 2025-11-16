@@ -2,9 +2,8 @@
 FROM node:lts-alpine AS builder
 WORKDIR /app
 
-# Install all dependencies (including dev) for building
 COPY package.json package-lock.json ./
-RUN npm install --no-fund --no-audit
+RUN npm ci
 
 # Copy source and build
 COPY . .
@@ -14,9 +13,9 @@ RUN npm run build
 FROM node:lts-alpine AS runner
 WORKDIR /app
 
-# Install only production dependencies
+# Copy manifests and install prod deps as root
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev --no-fund --no-audit
+RUN npm ci --omit=dev
 
 # Copy built app; make sure files are owned by the non-root user
 COPY --from=builder /app/dist ./dist
